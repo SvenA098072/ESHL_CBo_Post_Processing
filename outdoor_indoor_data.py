@@ -27,7 +27,8 @@ def prRed(skk): print("\033[31;1;m {}\033[00m" .format(skk))
 
 
 from uncertainties import ufloat
-engine = create_engine("mysql+pymysql://root:Password123@localhost/",pool_pre_ping=True)
+#engine = create_engine("mysql+pymysql://root:Password123@localhost/",pool_pre_ping=True)
+engine = create_engine("mysql+pymysql://admin:the_secure_password_4_ever@localhost/",pool_pre_ping=True)
 
 #%%%
 import datetime
@@ -54,7 +55,7 @@ i=0
 result1 = pd.DataFrame(["Outdoor Summary"])
 databases = ["ESHL_summer", "ESHL_winter", "CBo_summer", "CBo_winter"]
 for database in databases:
-    times = pd.read_excel('C:/Users/Raghavakrishna/OneDrive - bwedu/MA_Raghavakrishna/0_Evaluation/excel_files/Times_thesis.xlsx', sheet_name= database)
+    times = pd.read_excel('D:/Users/sauerswa/wichtige Ordner/sauerswa/Codes/Python/ESHL_CBo_Post_Processing/Times_thesis.xlsx', sheet_name= database)
 
     choices = list(times['short name'])
     for experiment in choices:

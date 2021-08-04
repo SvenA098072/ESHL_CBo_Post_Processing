@@ -22,8 +22,8 @@ import matplotlib.units as munits
 
 def prRed(skk): print("\033[31;1;m {}\033[00m" .format(skk))
 def prYellow(skk): print("\033[33;1;m {}\033[00m" .format(skk))
-engine = create_engine("mysql+pymysql://root:Password123@localhost/",pool_pre_ping=True)
-
+#engine = create_engine("mysql+pymysql://root:Password123@localhost/",pool_pre_ping=True)
+engine = create_engine("mysql+pymysql://admin:the_secure_password_4_ever@localhost/",pool_pre_ping=True)
 
 #%%
 
@@ -56,14 +56,15 @@ class CBO_ESHL:
                 The nominal time constant of the measurement obtained from 
                 master_time_sheet.xlsx
         """
-        excel_sheet = "C:/Users/Raghavakrishna/OneDrive - bwedu/5_PythonFiles/ESHL_CBo_Post_Processing/master_time_sheet.xlsx"
+        excel_sheet = "D:/Users/sauerswa/wichtige Ordner/sauerswa/Codes/Python/ESHL_CBo_Post_Processing/master_time_sheet.xlsx"
         self.times = pd.read_excel(excel_sheet, sheet_name = "Sheet1")
         self.input = pd.read_excel(excel_sheet, sheet_name = "inputs")
         self.experiment = experiment
         self.sensor_name = sensor_name
         self.column_name = column_name
-        # self.engine = create_engine("mysql+pymysql://wojtek:Password#102@wojtek.mysql.database.azure.com/",pool_pre_ping=True)
-        self.engine = create_engine("mysql+pymysql://root:Password123@localhost/",pool_pre_ping=True)
+        self.engine = create_engine("mysql+pymysql://wojtek:Password#102@wojtek.mysql.database.azure.com/",pool_pre_ping=True)
+        # self.engine = create_engine("mysql+pymysql://root:Password123@localhost/",pool_pre_ping=True)
+        # self.engine = create_engine("mysql+pymysql://admin:the_secure_password_4_ever@localhost/",pool_pre_ping=True)
 
         self.database = self.times[self.times["experiment"] == self.experiment].iloc[0,3]
         self.t0 = self.times[self.times["experiment"] == experiment].iloc[0,1]
@@ -184,7 +185,8 @@ class CBO_ESHL:
             There are two time periods where calibration was done and this
             '''
 
-            engine1 = create_engine("mysql+pymysql://root:Password123@localhost/{}".format(self.calibration),pool_pre_ping=True)
+            # engine1 = create_engine("mysql+pymysql://root:Password123@localhost/{}".format(self.calibration),pool_pre_ping=True)
+            engine1 = create_engine("mysql+pymysql://admin:the_secure_password_4_ever@localhost/{}".format(self.calibration),pool_pre_ping=True)
 
             
             '''standard syntax to import sql data as dataframe
@@ -363,7 +365,9 @@ class CBO_ESHL:
         for self.table in self.new_names:
             self.cdf1 = pd.read_sql_query("SELECT * FROM {}.{} WHERE datetime BETWEEN '{}' AND '{}'".format(self.database, self.table, self.t0, self.tn), con = self.engine) 
             self.cdf2 = self.cdf1.loc[:,["datetime", "CO2_ppm"]]
-            engine1 = create_engine("mysql+pymysql://root:Password123@localhost/{}".format(self.calibration),pool_pre_ping=True)
+            #engine1 = create_engine("mysql+pymysql://root:Password123@localhost/{}".format(self.calibration),pool_pre_ping=True)
+            engine1 = create_engine("mysql+pymysql://admin:the_secure_password_4_ever@localhost/{}".format(self.calibration),pool_pre_ping=True)
+
             self.reg_result = pd.read_sql_table("reg_result", con = engine1).drop("index", axis = 1)
             '''Calibration data for the particular sensor alone is filtered '''
             self.res = self.reg_result[self.reg_result['sensor'].str.lower() == self.table].reset_index(drop = True)
@@ -577,20 +581,22 @@ class CBO_ESHL:
         self.humidity = []
     
         for i in self.new_names:
-            self.hudf = pd.read_sql_query("SELECT * FROM {}.{} WHERE datetime BETWEEN '{}' AND '{}'".format(self.database,i,self.t0,self.tn), con = engine).set_index("datetime").dropna()
+            print(i)
+            self.hudf = pd.read_sql_query("SELECT * FROM {}.{} WHERE datetime BETWEEN '{}' AND '{}'".format(self.database,i,self.t0,self.tn), con = self.engine).set_index("datetime").dropna()
             if 'RH_%rH' in self.hudf.columns:
                 self.humidity.append(self.hudf["RH_%rH"].mean())
         self.humidity = [x for x in self.humidity if x == x]
         self.indoor_list = [[statistics.mean(self.humidity), statistics.stdev(self.humidity), max(self.humidity), min(self.humidity)]]
         
         for i in self.testos:
-            sdf = pd.read_sql_query("SELECT * FROM {}.{} WHERE datetime BETWEEN '{}' AND '{}'".format(self.database.lower(),i,self.t0,self.tn), con = engine)
+            print(i)
+            sdf = pd.read_sql_query("SELECT * FROM {}.{} WHERE datetime BETWEEN '{}' AND '{}'".format(self.database.lower(),i,self.t0,self.tn), con = self.engine)
 
             sdf = sdf.drop_duplicates(subset="datetime").set_index("datetime")
             sdf = sdf.loc[:,["hw_m/sec"]].dropna()
         self.indoor_list.append([sdf["hw_m/sec"].mean(), sdf["hw_m/sec"].std(), sdf["hw_m/sec"].max(), sdf["hw_m/sec"].min()])
         
-        self.wadf = pd.read_sql_query("SELECT * FROM weather.{} WHERE datetime BETWEEN '{}' AND '{}'".format(self.wall_database,self.t0,self.tn), con = engine).set_index("datetime")
+        self.wadf = pd.read_sql_query("SELECT * FROM weather.{} WHERE datetime BETWEEN '{}' AND '{}'".format(self.wall_database,self.t0,self.tn), con = self.engine).set_index("datetime")
 
         self.indoor_list.append([self.wadf.mean().mean(), self.wadf.values.std(ddof=1), self.wadf.values.max(), self.wadf.values.min()])
 
